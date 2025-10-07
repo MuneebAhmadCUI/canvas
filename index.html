@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Code to Flowchart Clone</title>
+    <title>CoDiagram Tool</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -11,168 +11,154 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            background-color: transparent; /* Makes the iframe background see-through */
         }
         .mermaid svg {
             width: 100%;
             height: auto;
         }
-        /* Custom scrollbar for a cleaner look */
-        textarea::-webkit-scrollbar {
-            width: 8px;
-        }
-        textarea::-webkit-scrollbar-track {
-            background: #2d3748;
-        }
-        textarea::-webkit-scrollbar-thumb {
-            background-color: #4a5568;
-            border-radius: 4px;
-        }
-        #flowchart-output {
+        textarea::-webkit-scrollbar { width: 8px; }
+        textarea::-webkit-scrollbar-track { background: #f1f5f9; }
+        textarea::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+        #diagram-output {
             transition: transform 0.2s ease-out;
             cursor: grab;
         }
+        /* Custom styles to match Framer site */
+        .framer-btn {
+            background-color: #facc15; /* yellow-400 */
+            color: #1e293b; /* slate-800 */
+            border: 2px solid #1e293b;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+        .framer-btn:hover {
+            background-color: #fde047; /* yellow-300 */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .framer-select {
+            background-color: #ffffff;
+            color: #1e293b;
+            border: 2px solid #e2e8f0; /* slate-200 */
+            font-weight: 500;
+            border-radius: 8px;
+        }
     </style>
 </head>
-<body class="bg-gray-900 text-white flex flex-col h-screen overflow-hidden">
-
-    <!-- Header -->
-    <header class="bg-gray-800 border-b border-gray-700 p-3 flex items-center justify-between shadow-md z-10">
-        <div class="flex items-center gap-3">
-            <svg class="w-8 h-8 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 S0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9-7.5h9.75" />
-            </svg>
-            <h1 class="text-xl font-bold text-gray-200">Code2Flow SuperTool</h1>
-        </div>
-        <div class="flex items-center gap-4">
-             <select id="language-select" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2">
-                <option value="Python" selected>Python</option>
-                <option value="Java">Java</option>
-                <option value="C++">C++</option>
-            </select>
-        </div>
-    </header>
+<body class="text-slate-800 flex flex-col h-screen overflow-hidden p-4">
 
     <!-- Main Content -->
-    <main class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-2 p-2 overflow-hidden">
+    <main class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 overflow-hidden h-full">
         <!-- Code Editor Panel -->
-        <div class="flex flex-col bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
-            <div class="bg-gray-700 p-2 border-b border-gray-600 text-sm font-semibold text-gray-300">
-                Source Code (Updates automatically)
+        <div class="flex flex-col bg-white rounded-xl border-2 border-slate-200 overflow-hidden h-full">
+            <div class="bg-slate-50 p-3 border-b-2 border-slate-200 text-sm font-semibold text-slate-600 flex justify-between items-center">
+                <span>Source Code</span>
+                <select id="language-select" class="framer-select text-sm p-1">
+                    <option value="Python" selected>Python</option>
+                    <option value="Java">Java</option>
+                    <option value="C++">C++</option>
+                </select>
             </div>
-            <textarea id="code-input" class="flex-1 p-4 bg-gray-800 text-gray-200 font-mono text-sm resize-none focus:outline-none w-full h-full" spellcheck="false">
-            </textarea>
+            <textarea id="code-input" class="flex-1 p-4 bg-white text-slate-800 font-mono text-sm resize-none focus:outline-none w-full h-full" spellcheck="false"></textarea>
         </div>
 
-        <!-- Flowchart Panel -->
-        <div id="flowchart-container" class="flex flex-col bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
-            <div class="bg-gray-700 p-2 border-b border-gray-600 text-sm font-semibold text-gray-300 flex justify-between items-center">
-                <span>Flowchart</span>
+        <!-- Diagram Panel -->
+        <div class="flex flex-col bg-white rounded-xl border-2 border-slate-200 overflow-hidden h-full">
+            <div class="bg-slate-50 p-3 border-b-2 border-slate-200 text-sm font-semibold text-slate-600 flex justify-between items-center">
+                 <div class="flex items-center gap-2 bg-slate-200 rounded-full p-1 cursor-pointer">
+                     <button id="mode-flowchart" class="px-3 py-1 text-xs rounded-full bg-white text-slate-800 shadow">Flowchart</button>
+                     <button id="mode-class" class="px-3 py-1 text-xs rounded-full text-slate-500">Class Diagram</button>
+                </div>
                 <div class="flex items-center gap-2">
-                     <!-- Zoom Controls -->
-                    <button id="zoom-out-btn" title="Zoom Out" class="p-1 rounded-md hover:bg-gray-600">-</button>
-                    <button id="zoom-in-btn" title="Zoom In" class="p-1 rounded-md hover:bg-gray-600">+</button>
-                    <button id="zoom-reset-btn" title="Reset Zoom" class="p-1 rounded-md hover:bg-gray-600">Reset</button>
-                    <!-- Export Dropdown -->
+                    <button id="zoom-out-btn" title="Zoom Out" class="p-1 rounded-md hover:bg-slate-200">-</button>
+                    <button id="zoom-in-btn" title="Zoom In" class="p-1 rounded-md hover:bg-slate-200">+</button>
+                    <button id="zoom-reset-btn" title="Reset Zoom" class="p-1 rounded-md hover:bg-slate-200">Reset</button>
                     <div class="relative" id="export-menu">
-                        <button id="export-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded-lg text-sm">Export</button>
-                        <div id="export-dropdown" class="hidden absolute right-0 mt-2 w-32 bg-gray-600 rounded-md shadow-lg z-20">
-                            <a href="#" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-500" data-format="svg">as SVG</a>
-                            <a href="#" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-500" data-format="png">as PNG</a>
-                            <a href="#" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-500" data-format="jpeg">as JPEG</a>
-                            <a href="#" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-500" data-format="pdf">as PDF</a>
+                        <button id="export-btn" class="framer-btn text-sm">Export</button>
+                        <div id="export-dropdown" class="hidden absolute right-0 mt-2 w-32 bg-white rounded-md shadow-lg z-20 border-2 border-slate-200">
+                            <a href="#" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100" data-format="svg">as SVG</a>
+                            <a href="#" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100" data-format="png">as PNG</a>
+                            <a href="#" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100" data-format="jpeg">as JPEG</a>
+                            <a href="#" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100" data-format="pdf">as PDF</a>
                         </div>
                     </div>
                 </div>
             </div>
-            <div id="flowchart-output-wrapper" class="flex-1 p-4 overflow-auto flex items-center justify-center">
-                 <div id="flowchart-output" class="w-full h-full"></div>
+            <div id="diagram-output-wrapper" class="flex-1 p-4 overflow-auto flex items-center justify-center bg-slate-50/50">
+                 <div id="diagram-output" class="w-full h-full"></div>
             </div>
         </div>
     </main>
 
-    <!-- Message Modal -->
-    <div id="message-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md text-center border border-gray-600">
-            <h3 id="modal-title" class="text-lg font-medium text-white mb-4">Message</h3>
-            <p id="modal-message" class="text-sm text-gray-300 mb-6"></p>
-            <button id="modal-close-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">
-                Got it
-            </button>
-        </div>
-    </div>
-
+    <!-- The script remains largely the same, only mermaid theme is changed -->
     <script>
-        // Initialize Mermaid.js
-        mermaid.initialize({ startOnLoad: false, theme: 'dark', securityLevel: 'loose' });
+        mermaid.initialize({ startOnLoad: false, theme: 'default', securityLevel: 'loose' });
 
         const sampleCode = {
-            'Python': `# A complex example with loops and nesting.
-def process_data(data):
-    for item in data:
-        if item > 50:
-            print("High value:", item)
-            if item > 90:
-                print("Alert! Critical value.")
-        elif item > 20:
-            print("Medium value:", item)
-        else:
-            print("Low value:", item)
+            'Python': `class Animal:
+    def __init__(self, name):
+        self._name = name
     
-    print("Processing complete.")
+    def speak(self):
+        raise NotImplementedError("Subclass must implement this method")
 
-my_list = [10, 85, 95, 30]
-process_data(my_list)`,
-            'Java': `// Complex Java example with loops and nesting
-class DataProcessor {
-    public void processData(int[] data) {
-        for (int item : data) {
-            if (item > 50) {
-                System.out.println("High value: " + item);
-                if (item > 90) {
-                    System.out.println("Alert! Critical value.");
-                }
-            } else if (item > 20) {
-                System.out.println("Medium value: " + item);
-            } else {
-                System.out.println("Low value: " + item);
-            }
-        }
-        System.out.println("Processing complete.");
-    }
+class Dog(Animal):
+    def speak(self):
+        return f"{self._name} says Woof!"
 
-    public static void main(String[] args) {
-        int[] myList = {10, 85, 95, 30};
-        new DataProcessor().processData(myList);
-    }
-}`,
-            'C++': `// Complex C++ example with loops and nesting
-#include <iostream>
-#include <vector>
-
-void processData(const std::vector<int>& data) {
-    for (int item : data) {
-        if (item > 50) {
-            std::cout << "High value: " << item << std::endl;
-            if (item > 90) {
-                std::cout << "Alert! Critical value." << std::endl;
-            }
-        } else if (item > 20) {
-            std::cout << "Medium value: " << item << std::endl;
-        } else {
-            std::cout << "Low value: " << item << std::endl;
-        }
-    }
-    std::cout << "Processing complete." << std::endl;
+def check_animal(animal):
+    if isinstance(animal, Dog):
+        print("It's a dog!")
+    else:
+        print("It's another animal.")
+`,
+            'Java': `abstract class Animal {
+    protected String name;
+    public Animal(String name) { this.name = name; }
+    public abstract String speak();
 }
 
-int main() {
-    std::vector<int> myList = {10, 85, 95, 30};
-    processData(myList);
-    return 0;
+class Dog extends Animal {
+    public String speak() { return name + " says Woof!"; }
+}
+
+class Main {
+    public static void checkAnimal(Animal animal) {
+        for (int i = 0; i < 2; i++) {
+            if (animal instanceof Dog) {
+                System.out.println("It's a dog!");
+            } else {
+                System.out.println("Another animal.");
+            }
+        }
+    }
+}`,
+            'C++': `#include <iostream>
+#include <string>
+#include <vector>
+
+class Animal {
+public:
+    virtual std::string speak() = 0;
+};
+
+class Dog : public Animal {
+public:
+    std::string speak() override { return "Woof!"; }
+};
+
+void check_animal(Animal* animal) {
+    if (dynamic_cast<Dog*>(animal)) {
+        std::cout << "It's a dog!" << std::endl;
+    } else {
+        std::cout << "Another animal." << std::endl;
+    }
 }`
         };
 
-        const escapeMermaid = (text) => text.replace(/"/g, '#quot;').replace(/</g, '#lt;').replace(/>/g, '#gt;').replace(/\[/g, '&#91;').replace(/\]/g, '&#93;').replace(/\|/g, '&#124;');
+        const escapeMermaid = (text) => text.replace(/"/g, '#quot;').replace(/</g, '#lt;').replace(/>/g, '#gt;').replace(/\[/g, '&#91;').replace(/\]/g, '&#93;').replace(/\|/g, '&#124;').replace(/\(/g, '&#40;').replace(/\)/g, '&#41;');
 
         function createParserState() {
             return {
@@ -181,115 +167,74 @@ int main() {
                 controlStack: [],
                 lastNodeId: null,
                 danglingNodes: [],
-                newNodeId(prefix = 'N') {
-                    return `${prefix}${this.nodeCounter++}`;
-                },
-                peek() {
-                    return this.controlStack.length > 0 ? this.controlStack[this.controlStack.length - 1] : null;
-                },
+                newNodeId(prefix = 'N') { return `${prefix}${this.nodeCounter++}`; },
+                peek() { return this.controlStack.length > 0 ? this.controlStack[this.controlStack.length - 1] : null; },
                 connectDanglingNodes(targetNode) {
-                    for (const node of this.danglingNodes) {
-                        this.mermaidDef += `    ${node.from} ${node.label || '-->'} ${targetNode}\n`;
-                    }
+                    for (const node of this.danglingNodes) { this.mermaidDef += `    ${node.from} ${node.label || '-->'} ${targetNode}\n`; }
                     this.danglingNodes = [];
                 }
             };
         }
 
-
         function parsePython(code) {
             const state = createParserState();
             const getIndent = (text) => text.match(/^\s*/)[0].length;
-
-            const lines = code.split('\n')
-                .map(line => ({ text: line.trim(), indent: getIndent(line) }))
-                .filter(line => line.text && !line.text.startsWith('#'));
-
+            const lines = code.split('\n').map(line => ({ text: line.trim(), indent: getIndent(line) })).filter(line => line.text && !line.text.startsWith('#') && !line.text.startsWith('class ') && !line.text.includes('__init__'));
             if (lines.length === 0) return '';
-
             state.lastNodeId = state.newNodeId('start');
             state.mermaidDef += `    ${state.lastNodeId}((Start))\n`;
-
             for (const line of lines) {
                 while (state.peek() && line.indent <= state.peek().indent) {
                     const block = state.controlStack.pop();
                     if (block.type === 'loop') {
-                        if (block.lastInTrueBranch !== block.conditionNode) {
-                           state.mermaidDef += `    ${block.lastInTrueBranch} --> ${block.conditionNode}\n`;
-                        }
+                        if (block.lastInTrueBranch !== block.conditionNode) state.mermaidDef += `    ${block.lastInTrueBranch} --> ${block.conditionNode}\n`;
                         state.danglingNodes.push({ from: block.conditionNode, label: '-- False -->' });
                     } else {
                         if (block.lastInTrueBranch) state.danglingNodes.push({ from: block.lastInTrueBranch });
                         if (block.lastInFalseBranch) state.danglingNodes.push({ from: block.lastInFalseBranch });
                         if (block.exitBranches) state.danglingNodes.push(...block.exitBranches.map(from => ({ from })));
-                        if (!block.lastInFalseBranch) {
-                           state.danglingNodes.push({ from: block.conditionNode, label: '-- False -->'});
-                        }
+                        if (!block.lastInFalseBranch) state.danglingNodes.push({ from: block.conditionNode, label: '-- False -->'});
                     }
                 }
-
                 const currentBlock = state.peek();
                 let match;
-                
                 const processNewNode = (newNode) => {
                     state.connectDanglingNodes(newNode);
-                    const fromNode = currentBlock ? 
-                        (currentBlock.type === 'else' ? currentBlock.lastInFalseBranch || state.lastNodeId : currentBlock.lastInTrueBranch)
-                        : state.lastNodeId;
-                    
+                    const fromNode = currentBlock ? (currentBlock.type === 'else' ? currentBlock.lastInFalseBranch || state.lastNodeId : currentBlock.lastInTrueBranch) : state.lastNodeId;
                     const label = (currentBlock && fromNode === currentBlock.conditionNode) ? '-- True -->' : '-->';
-                    if (fromNode) {
-                        state.mermaidDef += `    ${fromNode} ${label} ${newNode}\n`;
-                    }
+                    if (fromNode) state.mermaidDef += `    ${fromNode} ${label} ${newNode}\n`;
                     if (currentBlock) {
                         if(currentBlock.type === 'else') currentBlock.lastInFalseBranch = newNode;
                         else currentBlock.lastInTrueBranch = newNode;
                     }
                     state.lastNodeId = newNode;
                 };
-
                 if ((match = line.text.match(/^(if|for|while)\s+(.*):/))) {
-                    const type = match[1];
-                    const condition = escapeMermaid(match[2]);
-                    const isLoop = type === 'for' || type === 'while';
+                    const type = match[1]; const condition = escapeMermaid(match[2]); const isLoop = type === 'for' || type === 'while';
                     const conditionNode = state.newNodeId(isLoop ? 'loopCond' : 'ifCond');
                     state.mermaidDef += `    ${conditionNode}{${condition}}\n`;
-                    
                     state.connectDanglingNodes(conditionNode);
                      if(state.lastNodeId) state.mermaidDef += `    ${state.lastNodeId} --> ${conditionNode}\n`;
-
-                    state.controlStack.push({
-                        type: isLoop ? 'loop' : 'if',
-                        indent: line.indent,
-                        conditionNode: conditionNode,
-                        lastInTrueBranch: conditionNode,
-                    });
+                    state.controlStack.push({ type: isLoop ? 'loop' : 'if', indent: line.indent, conditionNode: conditionNode, lastInTrueBranch: conditionNode });
                     state.lastNodeId = conditionNode;
                 } else if ((match = line.text.match(/^elif\s+(.*):/))) {
                     if (currentBlock && (currentBlock.type === 'if' || currentBlock.type === 'elif')) {
                         const newConditionNode = state.newNodeId('elifCond');
                         state.mermaidDef += `    ${newConditionNode}{${escapeMermaid(match[1])}}\n`;
-
                         if (!currentBlock.exitBranches) currentBlock.exitBranches = [];
                         currentBlock.exitBranches.push({ from: currentBlock.lastInTrueBranch });
-
                         state.mermaidDef += `    ${currentBlock.conditionNode} -- False --> ${newConditionNode}\n`;
-                        currentBlock.type = 'elif';
-                        currentBlock.conditionNode = newConditionNode;
-                        currentBlock.lastInTrueBranch = newConditionNode;
+                        currentBlock.type = 'elif'; currentBlock.conditionNode = newConditionNode; currentBlock.lastInTrueBranch = newConditionNode;
                         state.lastNodeId = newConditionNode;
                     }
                 } else if (line.text.match(/^else:/)) {
                      if (currentBlock && (currentBlock.type === 'if' || currentBlock.type === 'elif')) {
                         const elseNode = state.newNodeId('else');
                         state.mermaidDef += `    ${elseNode}[Else]\n`;
-
                         if (!currentBlock.exitBranches) currentBlock.exitBranches = [];
                         currentBlock.exitBranches.push({ from: currentBlock.lastInTrueBranch });
-
                         state.mermaidDef += `    ${currentBlock.conditionNode} -- False --> ${elseNode}\n`;
-                        currentBlock.type = 'else';
-                        currentBlock.lastInFalseBranch = elseNode;
+                        currentBlock.type = 'else'; currentBlock.lastInFalseBranch = elseNode;
                         state.lastNodeId = elseNode;
                     }
                 } else { 
@@ -298,297 +243,324 @@ int main() {
                     processNewNode(statementNode);
                 }
             }
-            
             while(state.controlStack.length > 0) {
                  const block = state.controlStack.pop();
                  if (block.type === 'loop') {
-                    if (block.lastInTrueBranch !== block.conditionNode) {
-                        state.mermaidDef += `    ${block.lastInTrueBranch} --> ${block.conditionNode}\n`;
-                    }
+                    if (block.lastInTrueBranch !== block.conditionNode) state.mermaidDef += `    ${block.lastInTrueBranch} --> ${block.conditionNode}\n`;
                     state.danglingNodes.push({ from: block.conditionNode, label: '-- False -->' });
                 } else {
                     if (block.lastInTrueBranch) state.danglingNodes.push({ from: block.lastInTrueBranch });
                     if (block.lastInFalseBranch) state.danglingNodes.push({ from: block.lastInFalseBranch });
                     if (block.exitBranches) state.danglingNodes.push(...block.exitBranches);
-                    if (!block.lastInFalseBranch) {
-                       state.danglingNodes.push({ from: block.conditionNode, label: '-- False -->'});
-                    }
+                    if (!block.lastInFalseBranch) state.danglingNodes.push({ from: block.conditionNode, label: '-- False -->'});
                 }
             }
-            
             const isConditionId = (id) => id && (id.startsWith('ifCond') || id.startsWith('elifCond') || id.startsWith('loopCond'));
             if (state.lastNodeId && !isConditionId(state.lastNodeId) && !state.danglingNodes.some(n => n.from === state.lastNodeId)) {
                 state.danglingNodes.push({ from: state.lastNodeId });
             }
-
             const endId = state.newNodeId('end');
             state.mermaidDef += `    ${endId}((End))\n`;
             state.connectDanglingNodes(endId);
-
             return state.mermaidDef;
         }
 
         function parseBraceStyle(code) {
              const state = createParserState();
-             const formattedCode = code
-                .replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '')
-                .replace(/}\s*else\s*if/g, '} else if') 
-                .replace(/([{}])/g, '\n$1\n'); 
-            
-            const lines = formattedCode.split('\n').map(l => l.trim()).filter(l => l);
-            if (lines.length === 0) return '';
-
-            state.lastNodeId = state.newNodeId('start');
-            state.mermaidDef += `    ${state.lastNodeId}((Start))\n`;
-
-            for (const line of lines) {
-                const currentBlock = state.peek();
-                let match;
-
-                const processNewNode = (newNode) => {
-                    state.connectDanglingNodes(newNode);
-                    const fromNode = currentBlock ? 
-                        (currentBlock.type === 'else' ? currentBlock.lastInFalseBranch || state.lastNodeId : currentBlock.lastInTrueBranch)
-                        : state.lastNodeId;
-                    
-                    const label = (currentBlock && fromNode === currentBlock.conditionNode) ? '-- True -->' : '-->';
-                     if (fromNode) {
-                        state.mermaidDef += `    ${fromNode} ${label} ${newNode}\n`;
-                    }
-                    if (currentBlock) {
-                        if(currentBlock.type === 'else') currentBlock.lastInFalseBranch = newNode;
-                        else currentBlock.lastInTrueBranch = newNode;
-                    }
-                    state.lastNodeId = newNode;
-                };
-
-                if (line === '{') continue;
-                if (line === '}') {
-                    if (state.peek()) {
+             const formattedCode = code.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '').replace(/}\s*else\s*if/g, '} else if').replace(/([{}])/g, '\n$1\n'); 
+             const lines = formattedCode.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('class') && !l.startsWith('abstract') && !l.startsWith('#include'));
+             if (lines.length === 0) return '';
+             state.lastNodeId = state.newNodeId('start');
+             state.mermaidDef += `    ${state.lastNodeId}((Start))\n`;
+             for (const line of lines) {
+                 const currentBlock = state.peek();
+                 let match;
+                 const processNewNode = (newNode) => {
+                     state.connectDanglingNodes(newNode);
+                     const fromNode = currentBlock ? (currentBlock.type === 'else' ? currentBlock.lastInFalseBranch || state.lastNodeId : currentBlock.lastInTrueBranch) : state.lastNodeId;
+                     const label = (currentBlock && fromNode === currentBlock.conditionNode) ? '-- True -->' : '-->';
+                      if (fromNode) state.mermaidDef += `    ${fromNode} ${label} ${newNode}\n`;
+                     if (currentBlock) {
+                         if(currentBlock.type === 'else') currentBlock.lastInFalseBranch = newNode;
+                         else currentBlock.lastInTrueBranch = newNode;
+                     }
+                     state.lastNodeId = newNode;
+                 };
+                 if (line === '{' || line === '}') {
+                    if (line === '}' && state.peek()) {
                         const block = state.controlStack.pop();
                         if (block.type === 'loop') {
-                             if (block.lastInTrueBranch !== block.conditionNode) {
-                                state.mermaidDef += `    ${block.lastInTrueBranch} --> ${block.conditionNode}\n`;
-                             }
+                             if (block.lastInTrueBranch !== block.conditionNode) state.mermaidDef += `    ${block.lastInTrueBranch} --> ${block.conditionNode}\n`;
                             state.danglingNodes.push({ from: block.conditionNode, label: '-- False -->'});
                         } else {
                             if (block.lastInTrueBranch) state.danglingNodes.push({ from: block.lastInTrueBranch });
                             if (block.lastInFalseBranch) state.danglingNodes.push({ from: block.lastInFalseBranch });
                             if (block.exitBranches) state.danglingNodes.push(...block.exitBranches);
-                            if (!block.lastInFalseBranch) {
-                               state.danglingNodes.push({ from: block.conditionNode, label: '-- False -->'});
-                            }
+                            if (!block.lastInFalseBranch) state.danglingNodes.push({ from: block.conditionNode, label: '-- False -->'});
                         }
                     }
                     continue;
-                }
-
-                if ((match = line.match(/^(if|while|for)\s*\((.*)\)/))) {
-                    const type = match[1];
-                    const condition = escapeMermaid(match[2]);
-                    const isLoop = type !== 'if';
-                    const conditionNode = state.newNodeId(isLoop ? 'loopCond' : 'ifCond');
-                    state.mermaidDef += `    ${conditionNode}{${condition}}\n`;
-                    
-                    state.connectDanglingNodes(conditionNode);
-
-                    const fromNode = (currentBlock && (currentBlock.type === 'if' || currentBlock.type === 'elif')) ? currentBlock.conditionNode : state.lastNodeId;
-                    const edge = (currentBlock && (currentBlock.type === 'if' || currentBlock.type === 'elif')) ? '-- False -->' : '-->';
-                    if (fromNode) state.mermaidDef += `    ${fromNode} ${edge} ${conditionNode}\n`;
-                    
-                    state.controlStack.push({
-                        type: isLoop ? 'loop' : 'if',
-                        conditionNode,
-                        lastInTrueBranch: conditionNode
-                    });
-                    state.lastNodeId = conditionNode;
-
-                } else if ((match = line.match(/^else\s+if\s*\((.*)\)/))) {
-                    if (currentBlock && (currentBlock.type === 'if' || currentBlock.type === 'elif')) {
-                        const newConditionNode = state.newNodeId('elifCond');
-                        state.mermaidDef += `    ${newConditionNode}{${escapeMermaid(match[1])}}\n`;
-
-                        if (!currentBlock.exitBranches) currentBlock.exitBranches = [];
-                        currentBlock.exitBranches.push({ from: currentBlock.lastInTrueBranch });
-                        
-                        state.mermaidDef += `    ${currentBlock.conditionNode} -- False --> ${newConditionNode}\n`;
-                        
-                        currentBlock.type = 'elif';
-                        currentBlock.conditionNode = newConditionNode;
-                        currentBlock.lastInTrueBranch = newConditionNode;
-                        state.lastNodeId = newConditionNode;
-                    }
-                } else if (line.match(/^else/)) {
-                    if (currentBlock && (currentBlock.type === 'if' || currentBlock.type === 'elif')) {
-                        const elseNode = state.newNodeId('else');
-                        state.mermaidDef += `    ${elseNode}[Else]\n`;
-
-                        if (!currentBlock.exitBranches) currentBlock.exitBranches = [];
-                        currentBlock.exitBranches.push({ from: currentBlock.lastInTrueBranch });
-
-                        state.mermaidDef += `    ${currentBlock.conditionNode} -- False --> ${elseNode}\n`;
-
-                        currentBlock.type = 'else';
-                        currentBlock.lastInFalseBranch = elseNode;
-                        state.lastNodeId = elseNode;
-                    }
-                } else {
-                    const statementNode = state.newNodeId('stmt');
-                    state.mermaidDef += `    ${statementNode}["${escapeMermaid(line)}"]\n`;
-                    processNewNode(statementNode);
-                }
-            }
-
+                 }
+                 if ((match = line.match(/^(if|while|for)\s*\((.*)\)/))) {
+                     const type = match[1]; const condition = escapeMermaid(match[2]); const isLoop = type !== 'if';
+                     const conditionNode = state.newNodeId(isLoop ? 'loopCond' : 'ifCond');
+                     state.mermaidDef += `    ${conditionNode}{${condition}}\n`;
+                     state.connectDanglingNodes(conditionNode);
+                     const fromNode = (currentBlock && (currentBlock.type === 'if' || currentBlock.type === 'elif')) ? currentBlock.conditionNode : state.lastNodeId;
+                     const edge = (currentBlock && (currentBlock.type === 'if' || currentBlock.type === 'elif')) ? '-- False -->' : '-->';
+                     if (fromNode) state.mermaidDef += `    ${fromNode} ${edge} ${conditionNode}\n`;
+                     state.controlStack.push({ type: isLoop ? 'loop' : 'if', conditionNode, lastInTrueBranch: conditionNode });
+                     state.lastNodeId = conditionNode;
+                 } else if ((match = line.match(/^else\s+if\s*\((.*)\)/))) {
+                     if (currentBlock && (currentBlock.type === 'if' || currentBlock.type === 'elif')) {
+                         const newConditionNode = state.newNodeId('elifCond');
+                         state.mermaidDef += `    ${newConditionNode}{${escapeMermaid(match[1])}}\n`;
+                         if (!currentBlock.exitBranches) currentBlock.exitBranches = [];
+                         currentBlock.exitBranches.push({ from: currentBlock.lastInTrueBranch });
+                         state.mermaidDef += `    ${currentBlock.conditionNode} -- False --> ${newConditionNode}\n`;
+                         currentBlock.type = 'elif'; currentBlock.conditionNode = newConditionNode; currentBlock.lastInTrueBranch = newConditionNode;
+                         state.lastNodeId = newConditionNode;
+                     }
+                 } else if (line.match(/^else/)) {
+                     if (currentBlock && (currentBlock.type === 'if' || currentBlock.type === 'elif')) {
+                         const elseNode = state.newNodeId('else');
+                         state.mermaidDef += `    ${elseNode}[Else]\n`;
+                         if (!currentBlock.exitBranches) currentBlock.exitBranches = [];
+                         currentBlock.exitBranches.push({ from: currentBlock.lastInTrueBranch });
+                         state.mermaidDef += `    ${currentBlock.conditionNode} -- False --> ${elseNode}\n`;
+                         currentBlock.type = 'else'; currentBlock.lastInFalseBranch = elseNode;
+                         state.lastNodeId = elseNode;
+                     }
+                 } else {
+                     const statementNode = state.newNodeId('stmt');
+                     state.mermaidDef += `    ${statementNode}["${escapeMermaid(line)}"]\n`;
+                     processNewNode(statementNode);
+                 }
+             }
             while(state.controlStack.length > 0) {
-                 const block = state.controlStack.pop();
-                 if (block.type === 'loop') {
-                    if (block.lastInTrueBranch !== block.conditionNode) {
-                        state.mermaidDef += `    ${block.lastInTrueBranch} --> ${block.conditionNode}\n`;
-                    }
+                const block = state.controlStack.pop();
+                if (block.type === 'loop') {
+                    if (block.lastInTrueBranch !== block.conditionNode) state.mermaidDef += `    ${block.lastInTrueBranch} --> ${block.conditionNode}\n`;
                     state.danglingNodes.push({ from: block.conditionNode, label: '-- False -->'});
                 } else {
                     if (block.lastInTrueBranch) state.danglingNodes.push({ from: block.lastInTrueBranch });
                     if (block.lastInFalseBranch) state.danglingNodes.push({ from: block.lastInFalseBranch });
                     if (block.exitBranches) state.danglingNodes.push(...block.exitBranches);
-                    if (!block.lastInFalseBranch) {
-                       state.danglingNodes.push({ from: block.conditionNode, label: '-- False -->'});
-                    }
+                    if (!block.lastInFalseBranch) state.danglingNodes.push({ from: block.conditionNode, label: '-- False -->'});
                 }
             }
-            
             const isConditionId = (id) => id && (id.startsWith('ifCond') || id.startsWith('elifCond') || id.startsWith('loopCond'));
             if (state.lastNodeId && !isConditionId(state.lastNodeId) && !state.danglingNodes.some(n => n.from === state.lastNodeId)) {
                 state.danglingNodes.push({ from: state.lastNodeId });
             }
-            
             const endId = state.newNodeId('end');
             state.mermaidDef += `    ${endId}((End))\n`;
             state.connectDanglingNodes(endId);
-            
             return state.mermaidDef;
         }
 
+        function parsePythonForClass(code) {
+            let mermaidDef = 'classDiagram\n';
+            const classes = {};
+            const relationships = [];
+            const classRegex = /class\s+(\w+)(?:\((\w+)\))?:/g;
+            let match;
+            while ((match = classRegex.exec(code)) !== null) {
+                const className = match[1];
+                const parentClass = match[2];
+                classes[className] = { methods: [], attributes: [] };
+                if (parentClass) relationships.push(`${parentClass} <|-- ${className}`);
+            }
+            const lines = code.split('\n');
+            let currentClass = null;
+            let indentLevel = 0;
+            for (const line of lines) {
+                const trimmedLine = line.trim();
+                if (!trimmedLine || trimmedLine.startsWith('#')) continue;
+                const classMatch = line.match(/^class\s+(\w+)/);
+                if (classMatch) {
+                    currentClass = classMatch[1];
+                    indentLevel = line.match(/^\s*/)[0].length;
+                    continue;
+                }
+                if (currentClass && line.match(/^\s*/)[0].length > indentLevel) {
+                    const methodMatch = trimmedLine.match(/^def\s+(__\w+__|_\w+|\w+)\s*\((.*?)\)/);
+                    if (methodMatch) {
+                        const name = methodMatch[1];
+                        const params = methodMatch[2].replace('self, ', '').replace('self', '');
+                        let visibility = name.startsWith('__') ? '-' : (name.startsWith('_') ? '#' : '+');
+                        classes[currentClass].methods.push(`${visibility}${name}(${params})`);
+                    }
+                    const attrMatch = trimmedLine.match(/self\.(__\w+|_\w+|\w+)\s*=/);
+                    if (attrMatch) {
+                        const name = attrMatch[1];
+                        let visibility = name.startsWith('__') ? '-' : (name.startsWith('_') ? '#' : '+');
+                        if (!classes[currentClass].attributes.some(a => a.includes(name))) {
+                            classes[currentClass].attributes.push(`${visibility}${name}`);
+                        }
+                    }
+                } else {
+                    currentClass = null;
+                }
+            }
+            for (const className in classes) {
+                mermaidDef += `    class ${className} {\n`;
+                classes[className].attributes.forEach(attr => mermaidDef += `        ${attr}\n`);
+                classes[className].methods.forEach(method => mermaidDef += `        ${method}\n`);
+                mermaidDef += `    }\n`;
+            }
+            relationships.forEach(rel => mermaidDef += `    ${rel}\n`);
+            return mermaidDef;
+        }
 
-        const parsers = {
-            'Python': parsePython,
-            'Java': parseBraceStyle,
-            'C++': parseBraceStyle
-        };
+        function parseBraceStyleForClass(code) {
+             let mermaidDef = 'classDiagram\n';
+             const strippedCode = code.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '');
+             const classRegex = /(?:abstract\s+)?class\s+(\w+)(?:\s*(?:extends|: public)\s+(\w+))?/g;
+             let match;
+             const relationships = [];
+             while((match = classRegex.exec(strippedCode)) !== null) {
+                const [fullMatch, className, parentClass] = match;
+                mermaidDef += `    class ${className} {\n`;
+                if(fullMatch.includes('abstract')) mermaidDef += `        <<Abstract>>\n`;
+                const classStartIndex = match.index + fullMatch.length;
+                const classBody = strippedCode.substring(classStartIndex);
+                let braceCount = 0;
+                let classEndIndex = -1;
+                for(let i = 0; i < classBody.length; i++) {
+                    if (classBody[i] === '{') braceCount++;
+                    if (classBody[i] === '}') braceCount--;
+                    if (braceCount === 0 && classBody[i] === '}') { classEndIndex = i; break; }
+                }
+                if (classEndIndex !== -1) {
+                    const body = classBody.substring(0, classEndIndex).trim();
+                    const memberRegex = /(public|private|protected)?\s*(?:static\s+|final\s+|virtual\s+)?([\w<>\[\],:*&]+\*?)\s+([\w~]+)\s*(?:\(([^)]*)\)|;|= 0;)/g;
+                    let memberMatch;
+                    while((memberMatch = memberRegex.exec(body)) !== null) {
+                        const [m, visibility, type, name, params] = memberMatch;
+                        if(name === className || name === `~${className}`) continue;
+                        const visChar = (visibility === 'private' ? '-' : (visibility === 'protected' ? '#' : '+'));
+                        if (params !== undefined || m.includes('()')) {
+                             mermaidDef += `        ${visChar}${name}(${params || ''})${m.includes('= 0') ? '*' : ''}\n`;
+                        } else {
+                            mermaidDef += `        ${visChar}${type} ${name}\n`;
+                        }
+                    }
+                }
+                mermaidDef += `    }\n`;
+                if (parentClass) relationships.push(`${parentClass} <|-- ${className}`);
+             }
+             relationships.forEach(rel => mermaidDef += `    ${rel}\n`);
+             return mermaidDef;
+        }
 
+        const flowchartParsers = { 'Python': parsePython, 'Java': parseBraceStyle, 'C++': parseBraceStyle };
+        const classParsers = { 'Python': parsePythonForClass, 'Java': parseBraceStyleForClass, 'C++': parseBraceStyleForClass };
+        
         document.addEventListener('DOMContentLoaded', () => {
             const codeInput = document.getElementById('code-input');
             const languageSelect = document.getElementById('language-select');
-            const flowchartWrapper = document.getElementById('flowchart-output-wrapper');
-            const flowchartOutput = document.getElementById('flowchart-output');
-            const modal = document.getElementById('message-modal');
-            const modalTitle = document.getElementById('modal-title');
-            const modalMessage = document.getElementById('modal-message');
-            const modalCloseBtn = document.getElementById('modal-close-btn');
+            const diagramWrapper = document.getElementById('diagram-output-wrapper');
+            const diagramOutput = document.getElementById('diagram-output');
+            const modeFlowchartBtn = document.getElementById('mode-flowchart');
+            const modeClassBtn = document.getElementById('mode-class');
+            const diagramTitle = document.getElementById('diagram-title');
             const zoomInBtn = document.getElementById('zoom-in-btn');
             const zoomOutBtn = document.getElementById('zoom-out-btn');
             const zoomResetBtn = document.getElementById('zoom-reset-btn');
             const exportBtn = document.getElementById('export-btn');
             const exportDropdown = document.getElementById('export-dropdown');
-
-            const showMessage = (title, message) => {
-                modalTitle.textContent = title;
-                modalMessage.textContent = message;
-                modal.classList.remove('hidden');
-            };
-
-            const hideMessage = () => modal.classList.add('hidden');
-            modalCloseBtn.addEventListener('click', hideMessage);
-            modal.addEventListener('click', (e) => e.target === modal && hideMessage());
             
-            const debounce = (func, delay) => {
-                let timeout;
-                return (...args) => {
-                    clearTimeout(timeout);
-                    timeout = setTimeout(() => func.apply(this, args), delay);
-                };
-            };
-            
+            let currentMode = 'flowchart';
             let zoom = 1, isPanning = false, startX, startY, transformX = 0, transformY = 0;
-            const updateTransform = () => { flowchartOutput.style.transform = `translate(${transformX}px, ${transformY}px) scale(${zoom})`; };
+            
+            const debounce = (func, delay) => { let timeout; return (...args) => { clearTimeout(timeout); timeout = setTimeout(() => func.apply(this, args), delay); }; };
+            
+            const updateTransform = () => { diagramOutput.style.transform = `translate(${transformX}px, ${transformY}px) scale(${zoom})`; };
             const resetZoom = () => { zoom = 1; transformX = 0; transformY = 0; updateTransform(); };
             zoomInBtn.addEventListener('click', () => { zoom = Math.min(3, zoom + 0.2); updateTransform(); });
             zoomOutBtn.addEventListener('click', () => { zoom = Math.max(0.2, zoom - 0.2); updateTransform(); });
             zoomResetBtn.addEventListener('click', resetZoom);
-            flowchartWrapper.addEventListener('mousedown', (e) => { isPanning = true; startX = e.clientX - transformX; startY = e.clientY - transformY; flowchartOutput.style.cursor = 'grabbing'; flowchartWrapper.style.cursor = 'grabbing'; });
-            window.addEventListener('mouseup', () => { isPanning = false; flowchartOutput.style.cursor = 'grab'; flowchartWrapper.style.cursor = 'default'; });
+            diagramWrapper.addEventListener('mousedown', (e) => { isPanning = true; startX = e.clientX - transformX; startY = e.clientY - transformY; diagramOutput.style.cursor = 'grabbing'; diagramWrapper.style.cursor = 'grabbing'; });
+            window.addEventListener('mouseup', () => { isPanning = false; diagramOutput.style.cursor = 'grab'; diagramWrapper.style.cursor = 'default'; });
             window.addEventListener('mousemove', (e) => { if (!isPanning) return; transformX = e.clientX - startX; transformY = e.clientY - startY; updateTransform(); });
 
             const triggerDownload = (href, filename) => { const link = document.createElement('a'); link.href = href; link.download = filename; document.body.appendChild(link); link.click(); document.body.removeChild(link); };
-            const exportFlowchart = (format) => {
-                const svgEl = flowchartOutput.querySelector('svg');
-                if (!svgEl) { showMessage('Export Error', 'No flowchart available to export.'); return; }
-                const css = `svg { background-color: #1a202c; } .node rect, .node circle, .node polygon, .node path, .node ellipse { fill: #2d3748; stroke: #4a5568; stroke-width: 2px; } .node text { fill: #e2e8f0; font-family: "Inter", sans-serif; } .edgePath .path { stroke: #4a5568; } .edgeLabel { color: white; } .arrowheadPath { fill: #4a5568; }`;
-                const style = document.createElementNS("http://www.w3.org/2000/svg", "style");
-                style.textContent = css;
+            const exportDiagram = (format) => {
+                const svgEl = diagramOutput.querySelector('svg');
+                if (!svgEl) return;
+                const css = `svg { background-color: #fff; } .node rect, .node circle, .node polygon, .node path, .node ellipse { fill: #f1f5f9; stroke: #cbd5e1; } .node text, .edgeLabel, text { fill: #1e293b; font-family: "Inter", sans-serif; } .edgePath .path { stroke: #94a3b8; } .arrowheadPath { fill: #94a3b8; }`;
+                const style = document.createElementNS("http://www.w3.org/2000/svg", "style"); style.textContent = css;
                 svgEl.insertBefore(style, svgEl.firstChild);
-                const svgData = new XMLSerializer().serializeToString(svgEl);
-                style.remove();
-                if (format === 'svg') { const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' }); triggerDownload(URL.createObjectURL(blob), 'flowchart.svg'); return; }
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                const img = new Image();
+                const svgData = new XMLSerializer().serializeToString(svgEl); style.remove();
+                if (format === 'svg') { const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' }); triggerDownload(URL.createObjectURL(blob), 'diagram.svg'); return; }
+                const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); const img = new Image();
                 const scale = 2; const rect = svgEl.getBoundingClientRect(); canvas.width = rect.width * scale; canvas.height = rect.height * scale;
                 img.onload = () => {
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    URL.revokeObjectURL(img.src);
-                    if (format === 'png' || format === 'jpeg') { triggerDownload(canvas.toDataURL(`image/${format}`), `flowchart.${format}`); }
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height); URL.revokeObjectURL(img.src);
+                    if (format === 'png' || format === 'jpeg') { triggerDownload(canvas.toDataURL(`image/${format}`), `diagram.${format}`); }
                     else if (format === 'pdf') {
                         const { jsPDF } = window.jspdf;
                         const doc = new jsPDF({ orientation: canvas.width > canvas.height ? 'l' : 'p', unit: 'px', format: [canvas.width, canvas.height] });
-                        doc.addImage(canvas.toDataURL('image/jpeg', 0.9), 'JPEG', 0, 0, canvas.width, canvas.height);
-                        doc.save('flowchart.pdf');
+                        doc.addImage(canvas.toDataURL('image/jpeg', 0.9), 'JPEG', 0, 0, canvas.width, canvas.height); doc.save('diagram.pdf');
                     }
                 };
                 img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
             };
             exportBtn.addEventListener('click', () => exportDropdown.classList.toggle('hidden'));
             document.addEventListener('click', (e) => { if (!document.getElementById('export-menu').contains(e.target)) { exportDropdown.classList.add('hidden'); } });
-            exportDropdown.addEventListener('click', (e) => { e.preventDefault(); if(e.target.dataset.format) { exportFlowchart(e.target.dataset.format); exportDropdown.classList.add('hidden'); } });
+            exportDropdown.addEventListener('click', (e) => { e.preventDefault(); if(e.target.dataset.format) { exportDiagram(e.target.dataset.format); exportDropdown.classList.add('hidden'); } });
             
-            const renderFlowchart = (definition) => {
-                flowchartOutput.innerHTML = '';
-                if (!definition || definition.split('\n').length < 3) { 
-                    flowchartOutput.innerHTML = `<div class="text-gray-400">Enter code to generate a flowchart.</div>`; return;
+            const renderDiagram = (definition) => {
+                diagramOutput.innerHTML = '';
+                if (!definition || definition.split('\n').length < 2) { 
+                    diagramOutput.innerHTML = `<div class="text-slate-500">Enter code to generate a diagram.</div>`; return;
                 }
                 try {
                     const mermaidContainer = document.createElement('div');
                     mermaidContainer.className = 'mermaid';
                     mermaidContainer.textContent = definition;
-                    flowchartOutput.appendChild(mermaidContainer);
+                    diagramOutput.appendChild(mermaidContainer);
                     mermaid.run({ nodes: [mermaidContainer] });
-                } catch (e) { console.error("Mermaid error:", e); flowchartOutput.innerHTML = `<div class="text-red-400">Error rendering flowchart. Check console for details.</div>`; }
+                } catch (e) { console.error("Mermaid error:", e); }
             };
             
-            const generateFlowchart = () => {
+            const generateDiagram = () => {
                 try {
                     const lang = languageSelect.value;
-                    const parser = parsers[lang];
-                    if(!parser) throw new Error(`No parser for language: ${lang}`);
-                    const flowchartDefinition = parser(codeInput.value);
-                    renderFlowchart(flowchartDefinition);
+                    const parsers = currentMode === 'flowchart' ? flowchartParsers : classParsers;
+                    const diagramDefinition = parsers[lang](codeInput.value);
+                    renderDiagram(diagramDefinition);
                     resetZoom(); 
-                } catch (e) { 
-                    console.error("Parsing Error:", e); 
-                    showMessage('Parsing Error', 'The code could not be parsed. Check for syntax errors.'); 
-                }
+                } catch (e) { console.error("Parsing Error:", e); }
             };
 
-            languageSelect.addEventListener('change', () => {
-                const lang = languageSelect.value;
-                codeInput.value = sampleCode[lang];
-                generateFlowchart();
-            });
+            const setMode = (mode) => {
+                currentMode = mode;
+                if (mode === 'flowchart') {
+                    modeFlowchartBtn.classList.add('bg-white', 'text-slate-800', 'shadow');
+                    modeFlowchartBtn.classList.remove('text-slate-500');
+                    modeClassBtn.classList.remove('bg-white', 'text-slate-800', 'shadow');
+                    modeClassBtn.classList.add('text-slate-500');
+                } else {
+                    modeClassBtn.classList.add('bg-white', 'text-slate-800', 'shadow');
+                    modeClassBtn.classList.remove('text-slate-500');
+                    modeFlowchartBtn.classList.remove('bg-white', 'text-slate-800', 'shadow');
+                    modeFlowchartBtn.classList.add('text-slate-500');
+                }
+                generateDiagram();
+            };
 
+            modeFlowchartBtn.addEventListener('click', () => setMode('flowchart'));
+            modeClassBtn.addEventListener('click', () => setMode('class'));
+            languageSelect.addEventListener('change', () => { codeInput.value = sampleCode[languageSelect.value]; generateDiagram(); });
+            
             // Initial setup
             codeInput.value = sampleCode[languageSelect.value];
-            codeInput.addEventListener('input', debounce(generateFlowchart, 500));
-            generateFlowchart();
+            codeInput.addEventListener('input', debounce(generateDiagram, 500));
+            generateDiagram();
         });
     </script>
 </body>
 </html>
+
