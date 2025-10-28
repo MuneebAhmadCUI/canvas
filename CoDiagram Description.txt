@@ -1,0 +1,6 @@
+CoDiagram instantly transforms your Python, Java, and C++ code into clear, visual diagrams right in your browser.
+As you type, choose between:
+1. Flowcharts: To understand the step-by-step logic, control flow, loops, and conditions within your functions.
+2. Class Diagrams: To see the high-level architecture of your code, showing classes, their attributes, methods, and how they relate through inheritance and composition.
+Diagrams update automatically, matching your code in real-time. You can zoom, pan, and easily export your diagrams as high-quality SVG, PNG, JPEG, or PDF files for documentation, debugging, or sharing with your team. It's a purely client-side tool – your code stays secure in your browser.
+
